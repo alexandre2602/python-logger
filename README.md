@@ -31,10 +31,20 @@ Abaixo o nome das rotas necessárias e um exemplo de consumo.
 
 ### /find - GET
 
+```bash
+curl 'localhost:5000/remove/2010-07-31%2016:29:12' # procura em um intervale de 1 segundo antes e depois
+curl 'localhost:5000/find/?ini=2010-07-31%2016:29:12&end=2020-07-31%2022:29:12'
+```
+
 ### /insert - POST
 
 ```bash
-curl -d '{"data" : "1596203938.456688581", "texto" : "Sed fugiat rerum amet atque. Cumque voluptas ut consequuntur et illum quia. Quam eveniet officia ipsum et ut consequatur. Est ratione ea quidem voluptatibus numquam incidunt. Quidem et optio blanditiis beatae."}' -H 'Content-Type: application/json' localhost:5000/insert
+curl -d '{"data" : "2010-07-31 16:29:12", "texto" : "Sed fugiat rerum amet atque. Cumque voluptas ut consequuntur et illum quia. Quam eveniet officia ipsum et ut consequatur. Est ratione ea quidem voluptatibus numquam incidunt. Quidem et optio blanditiis beatae."}' -H 'Content-Type: application/json' localhost:5000/insert
 ```
 
 ### /remove - DELETE
+
+```bash
+curl -X DELETE 'localhost:5000/remove/2010-07-31%2016:29:12' # remove um intervale de 1 segundo antes e depois
+curl -X DELETE 'localhost:5000/remove/?ini=2010-07-31%2016:29:12&end=2020-07-31%2022:29:12'
+```
