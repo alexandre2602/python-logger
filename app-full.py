@@ -22,7 +22,6 @@ finally:
 @app.route('/find/')
 @app.route('/find/<date>')
 def find(date=None):
-
     if not date and not ('ini' in request.args or 'end' in request.args):
         return make_response(jsonify({'message' : "Especifique 'date' ou ini/end na query string"}), 400)
 
@@ -45,19 +44,25 @@ def find(date=None):
         except Exception as e:
             date_end = datetime.strptime(request.args['end'], '%Y-%m-%d')
 
-    # abrir conexão
-    # criar array de logs
-    # fazer consulta populando o array com um objeto {'data': '', 'texto' : ''} e seus respectivos valores
-    # retornar o arrauy, mesmo que vazio
+    con = sqlite3.connect('logger.db')
+    c = con.cursor()
+    try:
+        logs = []
+        #print("SELECT * FROM logs WHERE data BETWEEN '{}' AND '{}'".format(date + timedelta(seconds=-1), date + timedelta(seconds=1)))
+        for row in c.execute("SELECT * FROM logs WHERE data BETWEEN ? AND ?", (date_ini, date_end)):
+            logs.append({'data' : row[0], 'texto': row[1]})
+    finally:
+        c.close()
+        con.close()
+
+    return jsonify(logs)
 
 
 @app.route('/insert', methods=['POST'])
 def insert():
 
-    # verificar JWT
-
     try:
-        data = None # capturar o JSON da requisição
+        data = request.get_json()
         if not data or 'data' not in data or 'texto' not in data:
             raise Exception("Especifique as propriedades 'data' e 'texto'")
     except Exception as e:
@@ -68,17 +73,20 @@ def insert():
     except Exception as e:
         date = datetime.strptime(date['data'], '%Y-%m-%d')
 
-    # abrir conexão
-    # inserir loga, commit
-    # retornar mensagem de sucesso ou
-    # mensagem de erro caso ocorra algum problema
+    con = sqlite3.connect('logger.db')
+    try:
+        con.execute('INSERT INTO logs (data, texto) VALUES (?, ?)', (date, data['texto']))
+        con.commit()
+    except Exception as e:
+        return make_response(jsonify({'message' : str(e)}), 500)
+    finally:
+        con.close()
+
+    return jsonify({'message' : 'Log inserido'})
 
 @app.route('/remove/', methods=['DELETE'])
 @app.route('/remove/<date>', methods=['DELETE'])
 def remove(date=None):
-    
-    # verificar JWT
-
     if not date and not ('ini' in request.args or 'end' in request.args):
         return make_response(jsonify({'message' : "Especifique 'date' ou ini/end na query string"}), 400)
 
@@ -101,6 +109,13 @@ def remove(date=None):
         except Exception as e:
             date_end = datetime.strptime(request.args['end'], '%Y-%m-%d')
 
-    # abrir conexão
-    # remover registros
-    # retornar mensagem de sucesso
+    con = sqlite3.connect('logger.db')
+    try:
+        con.execute("DELETE FROM logs WHERE data BETWEEN ? AND ?", (date_ini, date_end))
+        con.commit()
+    except:
+        return make_response(jsonify({'message' : 'Problemas ao remover os registros'}), 500)
+    finally:
+        con.close()
+
+    return jsonify({'message' : 'Registros removidos'})
