@@ -3,6 +3,7 @@
 import requests, sqlite3, time
 
 from os import environ
+from functools import wraps
 from datetime import datetime, timedelta
 from flask import Flask, request, make_response, jsonify
 
@@ -18,6 +19,15 @@ try:
 finally:
     c.close()
     con.close()
+
+def jwt_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        response = requests.get('{}/check'.format(environ['AUTH_HOST'], headers=request.headers))
+        if response.status_code != 200:
+            return make_response(jsonify(response.json()), 500)
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/find/')
 @app.route('/find/<date>')
@@ -57,8 +67,8 @@ def find(date=None):
 
     return jsonify(logs)
 
-
 @app.route('/insert', methods=['POST'])
+@jwt_required
 def insert():
 
     try:
@@ -86,6 +96,7 @@ def insert():
 
 @app.route('/remove/', methods=['DELETE'])
 @app.route('/remove/<date>', methods=['DELETE'])
+@jwt_required
 def remove(date=None):
     if not date and not ('ini' in request.args or 'end' in request.args):
         return make_response(jsonify({'message' : "Especifique 'date' ou ini/end na query string"}), 400)
