@@ -19,6 +19,13 @@ finally:
     c.close()
     con.close()
 
+def jwt_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # implementar lógica da verificação do JWT
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route('/find/')
 @app.route('/find/<date>')
 def find(date=None):
@@ -52,6 +59,7 @@ def find(date=None):
 
 
 @app.route('/insert', methods=['POST'])
+# adicionar decorator
 def insert():
 
     # verificar JWT
@@ -75,6 +83,7 @@ def insert():
 
 @app.route('/remove/', methods=['DELETE'])
 @app.route('/remove/<date>', methods=['DELETE'])
+# adicionar decorator
 def remove(date=None):
     
     # verificar JWT
