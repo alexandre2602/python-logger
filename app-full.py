@@ -23,7 +23,7 @@ finally:
 def jwt_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        response = requests.get('{}/check'.format(environ['AUTH_HOST'], headers=request.headers))
+        response = requests.get('{}/check'.format(environ['AUTH_HOST']), headers={'Authorization' : request.headers['Authorization']})
         if response.status_code != 200:
             return make_response(jsonify(response.json()), 500)
         return f(*args, **kwargs)
